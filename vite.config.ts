@@ -4,12 +4,15 @@ import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
-  // Remova qualquer linha que diga 'root: "client"'
+  root: './', // Onde está o seu index.html
   build: {
     outDir: 'dist',
-    rollupOptions: {
-      // Aqui dizemos para ele que o index.html está na raiz agora
-      input: path.resolve(__dirname, 'index.html'),
+    emptyOutDir: true,
+  },
+  resolve: {
+    alias: {
+      // Isso diz: Sempre que ver "@", olhe dentro de client/src
+      "@": path.resolve(__dirname, "./client/src"),
     },
   },
 });
