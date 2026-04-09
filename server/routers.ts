@@ -19,7 +19,7 @@ export const appRouter = router({
     // Obter todos os bombeiros
     list: publicProcedure.query(async () => {
       const bombeiros = await getBombeiros();
-      return bombeiros.map((b) => ({
+      return bombeiros.map((b: any) => ({
         id: b.id,
         nome: b.nome,
         equipe: b.equipe,

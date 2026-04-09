@@ -19,8 +19,7 @@ export const appRouter = router({
     // Obter todos os bombeiros
     list: publicProcedure.query(async () => {
       const bombeiros = await getBombeiros();
-      return bombeiros.map((b) => ({
-        id: b.id,
+      return bombeiros.map((b: any) => ({
         nome: b.nome,
         equipe: b.equipe,
         dataInicio: typeof b.dataInicio === 'string' ? b.dataInicio : b.dataInicio.toISOString(),
