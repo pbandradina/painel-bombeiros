@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1774525873571,
+      "tag": "0000_elite_ulik",
+      "breakpoints": true
+    }
+  ]
+}

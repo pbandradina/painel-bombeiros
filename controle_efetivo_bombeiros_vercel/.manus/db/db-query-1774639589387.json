@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE `bombeiros` (\n\t`id` varchar(255) NOT NULL,\n\t`nome` varchar(255) NOT NULL,\n\t`equipe` varchar(10) NOT NULL,\n\t`data_inicio` datetime NOT NULL,\n\t`created_at` datetime DEFAULT CURRENT_TIMESTAMP,\n\t`updated_at` datetime DEFAULT CURRENT_TIMESTAMP,\n\tCONSTRAINT `bombeiros_id` PRIMARY KEY(`id`)\n);\n\nCREATE TABLE `escalas` (\n\t`id` varchar(255) NOT NULL,\n\t`bombero_id` varchar(255) NOT NULL,\n\t`data` varchar(10) NOT NULL,\n\t`sigla` varchar(10) NOT NULL,\n\t`created_at` datetime DEFAULT CURRENT_TIMESTAMP,\n\t`updated_at` datetime DEFAULT CURRENT_TIMESTAMP,\n\tCONSTRAINT `escalas_id` PRIMARY KEY(`id`)\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway05.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 25ejUGzG1wDQkdq.root --database UMQjPhNB7E8HCqCKmXz2QJ --execute CREATE TABLE `bombeiros` (\n\t`id` varchar(255) NOT NULL,\n\t`nome` varchar(255) NOT NULL,\n\t`equipe` varchar(10) NOT NULL,\n\t`data_inicio` datetime NOT NULL,\n\t`created_at` datetime DEFAULT CURRENT_TIMESTAMP,\n\t`updated_at` datetime DEFAULT CURRENT_TIMESTAMP,\n\tCONSTRAINT `bombeiros_id` PRIMARY KEY(`id`)\n);\n\nCREATE TABLE `escalas` (\n\t`id` varchar(255) NOT NULL,\n\t`bombero_id` varchar(255) NOT NULL,\n\t`data` varchar(10) NOT NULL,\n\t`sigla` varchar(10) NOT NULL,\n\t`created_at` datetime DEFAULT CURRENT_TIMESTAMP,\n\t`updated_at` datetime DEFAULT CURRENT_TIMESTAMP,\n\tCONSTRAINT `escalas_id` PRIMARY KEY(`id`)\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1239
+}
