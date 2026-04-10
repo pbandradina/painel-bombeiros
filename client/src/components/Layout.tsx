@@ -18,9 +18,13 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       {/* SIDEBAR DARK */}
       <aside className="w-64 bg-[#0F172A] border-r border-slate-800 flex flex-col shadow-2xl">
         <div className="p-6 flex items-center gap-3">
-          <div className="bg-red-600 p-2 rounded-lg shadow-lg shadow-red-900/40">
-            <Flame className="text-white fill-white" size={20} />
-          </div>
+          <div className="mb-2">
+  <img 
+    src="/brasao-20gb.png" 
+    alt="20º GB" 
+    className="w-16 h-16 object-contain" 
+  />
+</div>
           <span className="text-xl font-black text-white tracking-tighter">SGB-PAINEL</span>
         </div>
 
