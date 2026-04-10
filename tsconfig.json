@@ -4,7 +4,6 @@
   "compilerOptions": {
     "ignoreDeprecations": "5.0",
     "incremental": true,
-    "ignoreDeprecations": "5.0",
     "tsBuildInfoFile": "./node_modules/typescript/tsbuildinfo",
     "noEmit": true,
     "module": "ESNext",
