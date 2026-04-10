@@ -1,47 +1,21 @@
-import { Toaster } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import NotFound from "@/pages/NotFound";
-import { Route, Switch } from "wouter";
-import ErrorBoundary from "./components/ErrorBoundary";
-import { ThemeProvider } from "./contexts/ThemeContext";
-import { EscalaProvider } from "./contexts/EscalaContext";
-import { LayoutProvider } from "./contexts/LayoutContext";
-import Home from "./pages/Home";
-
-
-function Router() {
-  return (
-    <Switch>
-      <Route path={"/"} component={Home} />
-      <Route path={"/404"} component={NotFound} />
-      {/* Final fallback route */}
-      <Route component={NotFound} />
-    </Switch>
-  );
-}
-
-// NOTE: About Theme
-// - First choose a default theme according to your design style (dark or light bg), than change color palette in index.css
-//   to keep consistent foreground/background color across components
-// - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Layout } from './components/Layout';
+import Home from './pages/Home';
+// Importe outras páginas aqui se existirem, ex:
+// import Escalas from './pages/Escalas';
 
 function App() {
   return (
-    <ErrorBoundary>
-      <ThemeProvider
-        defaultTheme="light"
-        // switchable
-      >
-        <LayoutProvider>
-          <EscalaProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Router />
-            </TooltipProvider>
-          </EscalaProvider>
-        </LayoutProvider>
-      </ThemeProvider>
-    </ErrorBoundary>
+    <Router>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          {/* Se você tiver uma página de escalas, adicione a linha abaixo: */}
+          {/* <Route path="/escalas" element={<Escalas />} /> */}
+        </Routes>
+      </Layout>
+    </Router>
   );
 }
 
