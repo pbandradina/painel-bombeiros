@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, Calendar, Settings, LogOut, Flame, Bell } from 'lucide-react';
+import { LayoutDashboard, Users, Calendar, Settings, LogOut, Bell } from 'lucide-react';
 
 export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const navigate = useNavigate();
@@ -17,15 +17,15 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     <div className="flex h-screen bg-[#020617] text-slate-200 font-sans overflow-hidden">
       {/* SIDEBAR DARK */}
       <aside className="w-64 bg-[#0F172A] border-r border-slate-800 flex flex-col shadow-2xl">
-        <div className="p-6 flex items-center gap-3">
-          <div className="mb-2">
-  <img 
-    src="/brasao-20gb.png" 
-    alt="20º GB" 
-    className="w-16 h-16 object-contain" 
-  />
-</div>
-          <span className="text-xl font-black text-white tracking-tighter">SGB-PAINEL</span>
+        
+        {/* LOGO AREA - CORRIGIDA */}
+        <div className="p-6 flex flex-col items-center gap-3 border-b border-slate-800">
+          <img 
+            src="/logo-20gb.png" 
+            alt="20º GB" 
+            className="w-20 h-20 object-contain shadow-lg" 
+          />
+          <span className="text-xl font-black text-white tracking-tighter">SGB-ANDRADINA</span>
         </div>
 
         <nav className="flex-1 px-4 py-6 space-y-2">
