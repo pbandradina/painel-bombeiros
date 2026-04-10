@@ -2,9 +2,8 @@
   "include": ["client/src/**/*", "shared/**/*", "server/**/*", "api/**/*"],
   "exclude": ["node_modules", "build", "dist", "**/*.test.ts"],
   "compilerOptions": {
-    "ignoreDeprecations": "5.0",
     "incremental": true,
-    "tsBuildInfoFile": "./node_modules/typescript/tsbuildinfo",
+    "ignoreDeprecations": "6.0", // <--- ESSA LINHA MATA O ERRO
     "noEmit": true,
     "module": "ESNext",
     "strict": true,
@@ -12,9 +11,8 @@
     "jsx": "react-jsx",
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "allowImportingTsExtensions": true,
     "moduleResolution": "bundler",
-    "baseUrl": ".",
+    "baseUrl": ".", 
     "types": ["node", "vite/client"],
     "paths": {
       "@/*": ["./client/src/*"],
