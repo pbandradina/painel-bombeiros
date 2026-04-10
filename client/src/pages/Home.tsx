@@ -4,7 +4,7 @@ import { ImportadorExcel } from '@/components/ImportadorExcel';
 import { DashboardSaldos } from '@/components/DashboardSaldos';
 import { CalendarioDinamico } from '@/components/CalendarioDinamico';
 import { GerenciadorBombeiros } from '@/components/GerenciadorBombeiros';
-import { ControlesLayout } from '@/components/ControlesLayout';
+import { Layout } from "../components/Layout";
 import { ExportadorExcel } from '@/components/ExportadorExcel';
 import { RelatorioPeriodo } from '@/components/RelatorioPeriodo';
 import { trpc } from '@/lib/trpc';
@@ -155,7 +155,7 @@ export default function Home() {
                   {bomberroAtual && (
                     <div className="mt-4">
                       <CalendarioDinamico
-                        bomberoId={bomberroAtual.id}
+                        .map((bombeiro: any) =>
                         bomberoNome={bomberroAtual.nome}
                       />
                     </div>
