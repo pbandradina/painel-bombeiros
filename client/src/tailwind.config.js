@@ -2,16 +2,10 @@
 export default {
   content: [
     "./index.html",
-    "./client/src/**/*.{js,ts,jsx,tsx}", // Isso aqui é o segredo!
+    "./client/src/**/*.{js,ts,jsx,tsx}", // O segredo está nessa linha!
   ],
   theme: {
-    extend: {
-      colors: {
-        border: "hsl(var(--border))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
-      }
-    },
+    extend: {},
   },
   plugins: [],
 }
