@@ -1,54 +1,36 @@
-import React from 'react';
-import { trpc } from '../lib/trpc';
-import { Layout } from '../components/Layout';
-import { Users, Clock, Activity } from 'lucide-react';
+// Dentro do seu Home.tsx, importe o calculador no topo:
+import { calcularFO } from '../lib/foCalculator';
 
-export default function Home() {
-  const { data: bombeiros, isLoading } = trpc.bombeiros.list.useQuery();
-
-  if (isLoading) return <div className="p-8 text-red-500 font-bold">CARREGANDO...</div>;
+// ... dentro do seu componente, na parte da tabela:
+{bombeiros?.map((b: any) => {
+  // Chamamos o cálculo para cada bombeiro da lista
+  const stats = calcularFO(new Date(b.dataInicio), b.escala || {});
 
   return (
-    <Layout>
-      <div className="space-y-6">
-        {/* CARDS */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-[#1E293B] p-6 rounded-2xl border border-slate-800 shadow-xl">
-            <Users className="text-red-500 mb-2" />
-            <p className="text-slate-500 text-xs font-black">EFETIVO TOTAL</p>
-            <h3 className="text-2xl font-bold text-white">{bombeiros?.length || 0}</h3>
+    <tr key={b.id} className="hover:bg-slate-800/40 border-b border-slate-800">
+      <td className="px-6 py-4 font-bold text-slate-200 uppercase">{b.nome}</td>
+      <td className="px-6 py-4">
+        <div className="flex gap-4">
+          <div className="text-center">
+            <p className="text-[10px] text-slate-500">CONQUISTADAS</p>
+            <p className="text-green-500 font-bold">{stats.conquistadas}</p>
           </div>
-          <div className="bg-[#1E293B] p-6 rounded-2xl border border-slate-800 shadow-xl">
-            <Activity className="text-green-500 mb-2" />
-            <p className="text-slate-500 text-xs font-black">STATUS</p>
-            <h3 className="text-2xl font-bold text-white">OPERACIONAL</h3>
+          <div className="text-center border-l border-slate-700 pl-4">
+            <p className="text-[10px] text-slate-500">DISPONÍVEIS</p>
+            <p className="text-amber-500 font-bold">{stats.disponiveis}</p>
           </div>
         </div>
-
-        {/* TABELA */}
-        <div className="bg-[#1E293B] rounded-2xl border border-slate-800 overflow-hidden">
-          <table className="w-full text-left">
-            <thead className="bg-slate-800/50 text-slate-500 text-[10px] uppercase font-black">
-              <tr>
-                <th className="px-6 py-4">Nome</th>
-                <th className="px-6 py-4">Equipe</th>
-                <th className="px-6 py-4">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800">
-              {bombeiros?.map((b: any) => (
-                <tr key={b.id} className="hover:bg-slate-800/40 transition-colors">
-                  <td className="px-6 py-4 font-bold text-slate-200 uppercase text-sm">{b.nome}</td>
-                  <td className="px-6 py-4">
-                    <span className="text-blue-500 font-black text-xs">EQUIPE {b.equipe}</span>
-                  </td>
-                  <td className="px-6 py-4 text-red-500 text-xs font-bold cursor-pointer">DETALHES</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      </td>
+      <td className="px-6 py-4">
+        {/* Barra de Progresso 0/9 */}
+        <p className="text-[10px] text-slate-500 mb-1">PROGRESSO: {stats.progresso}/9</p>
+        <div className="w-32 bg-slate-700 h-1.5 rounded-full overflow-hidden">
+          <div 
+            className="bg-red-600 h-full transition-all" 
+            style={{ width: `${(stats.progresso / 9) * 100}%` }}
+          ></div>
         </div>
-      </div>
-    </Layout>
+      </td>
+    </tr>
   );
-}
+})}
