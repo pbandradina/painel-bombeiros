@@ -20,6 +20,7 @@ export const appRouter = router({
     list: publicProcedure.query(async () => {
       const bombeiros = await getBombeiros();
       return bombeiros.map((b: any) => ({
+        id: b.id, // <--- CORREÇÃO: Faltava o ID aqui!
         nome: b.nome,
         equipe: b.equipe,
         dataInicio: typeof b.dataInicio === 'string' ? b.dataInicio : b.dataInicio.toISOString(),
