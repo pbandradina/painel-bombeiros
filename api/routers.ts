@@ -4,20 +4,14 @@ import { supabase } from "./db";
 
 export const appRouter = router({
   bombeiros: router({
-    // Lista todos os bombeiros e suas escalas
     list: publicProcedure.query(async () => {
       const { data, error } = await supabase
         .from("bombeiros")
         .select(`*, escalas(*)`);
-      
-      if (error) {
-        console.error("Erro ao buscar bombeiros:", error.message);
-        throw new Error(error.message);
-      }
+      if (error) throw new Error(error.message);
       return data || [];
     }),
 
-    // Cria um novo bombeiro
     create: publicProcedure
       .input(z.object({ 
         nome: z.string(), 
@@ -25,23 +19,15 @@ export const appRouter = router({
         dataInicio: z.date() 
       }))
       .mutation(async ({ input }) => {
-        const { data, error } = await supabase
-          .from("bombeiros")
-          .insert([{
-            nome: input.nome.toUpperCase(),
-            equipe: input.equipe,
-            data_inicio: input.dataInicio.toISOString()
-          }])
-          .select();
-
-        if (error) {
-          console.error("Erro ao inserir bombeiro:", error.message);
-          throw new Error(error.message);
-        }
+        const { data, error } = await supabase.from("bombeiros").insert([{
+          nome: input.nome.toUpperCase(),
+          equipe: input.equipe,
+          data_inicio: input.dataInicio.toISOString()
+        }]).select();
+        if (error) throw new Error(error.message);
         return data?.[0];
       }),
 
-    // Deleta um bombeiro
     delete: publicProcedure.input(z.string()).mutation(async ({ input }) => {
       const { error } = await supabase.from("bombeiros").delete().eq("id", input);
       if (error) throw new Error(error.message);
@@ -50,7 +36,6 @@ export const appRouter = router({
   }),
 
   escalas: router({
-    // Atualiza ou insere um dia na escala
     update: publicProcedure
       .input(z.object({ 
         bombeiroId: z.string(), 
