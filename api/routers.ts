@@ -4,14 +4,20 @@ import { supabase } from "./db";
 
 export const appRouter = router({
   bombeiros: router({
+    // Lista todos os bombeiros
     list: publicProcedure.query(async () => {
       const { data, error } = await supabase
         .from("bombeiros")
         .select(`*, escalas(*)`);
-      if (error) throw new Error(error.message);
+      
+      if (error) {
+        console.error("Erro ao listar:", error.message);
+        throw new Error(error.message);
+      }
       return data || [];
     }),
 
+    // Cria novo bombeiro (Foco aqui para resolver o erro 500)
     create: publicProcedure
       .input(z.object({ 
         nome: z.string(), 
@@ -19,15 +25,29 @@ export const appRouter = router({
         dataInicio: z.date() 
       }))
       .mutation(async ({ input }) => {
-        const { data, error } = await supabase.from("bombeiros").insert([{
-          nome: input.nome.toUpperCase(),
-          equipe: input.equipe,
-          data_inicio: input.dataInicio.toISOString()
-        }]).select();
-        if (error) throw new Error(error.message);
-        return data?.[0];
+        try {
+          const { data, error } = await supabase
+            .from("bombeiros")
+            .insert([{
+              nome: input.nome.toUpperCase(),
+              equipe: input.equipe,
+              data_inicio: input.dataInicio.toISOString()
+            }])
+            .select();
+
+          if (error) {
+            console.error("Erro Supabase Insert:", error.message);
+            throw new Error(error.message);
+          }
+          
+          return data?.[0];
+        } catch (e: any) {
+          console.error("Erro interno no servidor:", e.message);
+          throw new Error("Falha ao salvar bombeiro no banco.");
+        }
       }),
 
+    // Deleta bombeiro
     delete: publicProcedure.input(z.string()).mutation(async ({ input }) => {
       const { error } = await supabase.from("bombeiros").delete().eq("id", input);
       if (error) throw new Error(error.message);
@@ -37,27 +57,16 @@ export const appRouter = router({
 
   escalas: router({
     update: publicProcedure
-      .input(z.object({ 
-        bombeiroId: z.string(), 
-        data: z.string(), 
-        sigla: z.string() 
-      }))
+      .input(z.object({ bombeiroId: z.string(), data: z.string(), sigla: z.string() }))
       .mutation(async ({ input }) => {
         if (input.sigla === "") {
-          const { error } = await supabase
-            .from("escalas")
-            .delete()
-            .match({ bombeiro_id: input.bombeiroId, data: input.data });
-          if (error) throw new Error(error.message);
+          await supabase.from("escalas").delete().match({ bombeiro_id: input.bombeiroId, data: input.data });
         } else {
-          const { error } = await supabase
-            .from("escalas")
-            .upsert({
-              bombeiro_id: input.bombeiroId,
-              data: input.data,
-              sigla: input.sigla
-            });
-          if (error) throw new Error(error.message);
+          await supabase.from("escalas").upsert({
+            bombeiro_id: input.bombeiroId,
+            data: input.data,
+            sigla: input.sigla
+          });
         }
         return { success: true };
       })
