@@ -1,5 +1,13 @@
 // client/src/lib/foCalculator.ts
-// LÓGICA LITERAL MANUS - Desenvolvido por: Sgt Clovis
+// LÓGICA LITERAL MANUS COM EXPORTS COMPLETOS
+
+export interface Bombeiro {
+  id: string;
+  nome: string;
+  equipe: string;
+  data_inicio: string;
+  escalas: { data: string; sigla: string }[];
+}
 
 export interface PeriodoConquista {
   numero: number;
@@ -17,9 +25,18 @@ export interface CalculoFO {
 }
 
 export const INTERRUPT_CODES = new Set(['F', 'LP', 'DS', 'LT', 'D', 'LTS', 'C', 'CFS', 'CAS', 'EAP', 'TAF']);
-export const PAUSE_CODES = new Set(['PA', 'FO', 'ME', 'EX']);
 export const COLORS_CYCLE = ['VD', 'AM', 'AZ'];
 
+// --- FUNÇÃO QUE ESTAVA FALTANDO ---
+export function calcularTodosBombeiros(bombeiros: any[], ateDia: Date = new Date()): Record<string, CalculoFO> {
+  const resultados: Record<string, CalculoFO> = {};
+  for (const bombeiro of bombeiros) {
+    resultados[bombeiro.id] = calcularFO(bombeiro, ateDia);
+  }
+  return resultados;
+}
+
+// --- FUNÇÃO PRINCIPAL DE CÁLCULO ---
 export function calcularFO(bombeiro: any, ateDia: Date = new Date()): CalculoFO {
   let foConquistadas = 0;
   let foUsadas = 0;
@@ -30,7 +47,6 @@ export function calcularFO(bombeiro: any, ateDia: Date = new Date()): CalculoFO 
   const dataReferencia = new Date(2026, 0, 1);
   const dataInicioBombeiro = new Date(bombeiro.data_inicio || bombeiro.dataInicio);
   
-  // Transformar escala em Record para busca rápida
   const escala = (bombeiro.escalas || []).reduce((acc: any, curr: any) => {
     acc[curr.data] = curr.sigla;
     return acc;
@@ -45,7 +61,6 @@ export function calcularFO(bombeiro: any, ateDia: Date = new Date()): CalculoFO 
       const corOficial = getCorOficial(dataAtual);
       const valor = (escala[chave] || '').toUpperCase().trim();
 
-      // REGRA DE SERVIÇO NORMAL
       if (valor === corOficial) {
         if (cicloAtualServicos === 0) dataInicioConquista = chave;
         cicloAtualServicos++;
@@ -61,18 +76,15 @@ export function calcularFO(bombeiro: any, ateDia: Date = new Date()): CalculoFO 
           dataInicioConquista = null;
         }
       }
-      // REGRA DE AFASTAMENTO - ZERA CICLO
       else if (INTERRUPT_CODES.has(valor)) {
         cicloAtualServicos = 0;
         dataInicioConquista = null;
       }
-      // REGRA DE FO USADA
       else if (valor === 'FO') {
         foUsadas++;
         const conquistaLivre = periodosConquista.find(p => !p.dataUso);
         if (conquistaLivre) conquistaLivre.dataUso = chave;
       }
-      // PAUSAS (PA, ME, EX) - Não fazem nada, ciclo continua
     }
     dataAtual.setDate(dataAtual.getDate() + 1);
   }
@@ -86,11 +98,9 @@ export function calcularFO(bombeiro: any, ateDia: Date = new Date()): CalculoFO 
   };
 }
 
-// --- FUNÇÕES AUXILIARES REQUERIDAS PELOS COMPONENTES ---
-
 export function getCorOficial(data: Date): string {
   const dataRef = new Date(2026, 0, 1);
-  const diff = Math.floor((data.getTime() - dataRef.getTime()) / (1000 * 60 * 60 * 24));
+  const diff = Math.floor((data.getTime() - dataRef.getTime()) / 86400000);
   return COLORS_CYCLE[((diff % 3) + 3) % 3];
 }
 
