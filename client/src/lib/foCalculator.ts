@@ -1,7 +1,11 @@
-export const INTERRUPT_CODES = ['F', 'LP', 'DS', 'LT', 'D', 'LTS', 'C', 'CFS', 'CAS', 'EAP', 'TAF'];
-export const COLORS_CYCLE = ['VD', 'AM', 'AZ'];
+export interface CalculoFO {
+  conquistadas: number;
+  usadas: number;
+  disponiveis: number;
+  progresso: number;
+}
 
-export function calcularFO(dataInicioBombeiro: string | Date, escalasArray: any[]) {
+export function calcularFO(dataInicioBombeiro: any, escalasArray: any[]): CalculoFO {
   let foConquistadas = 0;
   let foUsadas = 0;
   let cicloAtualServicos = 0;
@@ -9,13 +13,11 @@ export function calcularFO(dataInicioBombeiro: string | Date, escalasArray: any[
   const dataRef = new Date('2026-01-01T00:00:00');
   const dataInicio = new Date(dataInicioBombeiro);
 
-  // Transformar array de escalas em um objeto fácil de ler: { "2026-04-08": "VD" }
   const escalaMap = (escalasArray || []).reduce((acc: any, curr: any) => {
     acc[curr.data] = curr.sigla;
     return acc;
   }, {});
 
-  // Ordenar as datas para processar
   const todasAsDatas = Object.keys(escalaMap).sort();
 
   todasAsDatas.forEach(dataStr => {
@@ -23,8 +25,9 @@ export function calcularFO(dataInicioBombeiro: string | Date, escalasArray: any[
     if (dataAtual < dataInicio) return;
 
     const sigla = escalaMap[dataStr].toUpperCase();
-    const diffDias = Math.floor((dataAtual.getTime() - dataRef.getTime()) / (86400000));
-    const corOficial = COLORS_CYCLE[((diffDias % 3) + 3) % 3];
+    const diffDias = Math.floor((dataAtual.getTime() - dataRef.getTime()) / 86400000);
+    const cores = ['VD', 'AM', 'AZ'];
+    const corOficial = cores[((diffDias % 3) + 3) % 3];
 
     if (sigla === corOficial) {
       cicloAtualServicos++;
@@ -32,7 +35,7 @@ export function calcularFO(dataInicioBombeiro: string | Date, escalasArray: any[
         foConquistadas++;
         cicloAtualServicos = 0;
       }
-    } else if (INTERRUPT_CODES.includes(sigla)) {
+    } else if (['F', 'LP', 'DS', 'LT', 'D', 'LTS', 'C', 'CFS', 'CAS', 'EAP', 'TAF'].includes(sigla)) {
       cicloAtualServicos = 0;
     }
 

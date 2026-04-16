@@ -1,162 +1,152 @@
-import React, { useRef } from 'react';
-import { Button } from '@/components/ui/button';
+import React from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, Upload, Share2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { useEscala } from '@/contexts/EscalaContext';
-import { toast } from 'sonner';
+import { useLayout } from '@/contexts/LayoutContext';
+import { Edit2, Trash2, CheckCircle, AlertCircle, TrendingUp } from 'lucide-react';
+import { EditorBombeiro } from './EditorBombeiro';
 
-export function CompartilhadorDados() {
-  const { bombeiros, setBombeiros } = useEscala();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+const HIERARQUIA_ORDEM = [
+  '1º Sgt PM Coltri',
+  '1º Sgt PM Berto',
+  '2º Sgt PM Bruce',
+  '2º Sgt PM Mathias',
+  '3º Sgt PM Caio César',
+  'Cb PM Alain',
+  'Cb PM Alessandro',
+  'Cb PM Silva Jr',
+  'Cb PM Silveira',
+  'Cb PM Bravo',
+  'Cb PM Rossete',
+  'Cb PM Caroline',
+  'Cb PM Bortoleto',
+  'Cb PM Vieira',
+  'Cb PM Saulo',
+  'Cb PM Corrêa',
+  'Cb PM Luiz Gustavo',
+  'Cb PM Hugo',
+  'Sd PM Fausto',
+  'Sd PM Lucian',
+  'Sd PM Anderson Ferreira',
+];
 
-  const exportarDados = () => {
-    if (bombeiros.length === 0) {
-      toast.error('❌ Nenhum bombeiro para exportar');
-      return;
-    }
+const ordenarBombeiros = (bombeiros: any[]) => {
+  return [...bombeiros].sort((a, b) => {
+    const indexA = HIERARQUIA_ORDEM.indexOf(a.nome);
+    const indexB = HIERARQUIA_ORDEM.indexOf(b.nome);
+    if (indexA === -1) return 1;
+    if (indexB === -1) return -1;
+    return indexA - indexB;
+  });
+};
 
-    // Preparar dados para exportação
-    const dadosExportacao = {
-      versao: '1.0',
-      dataExportacao: new Date().toISOString(),
-      bombeiros: bombeiros.map(b => ({
-        id: b.id,
-        nome: b.nome,
-        equipe: b.equipe,
-        dataInicio: typeof b.dataInicio === 'string' 
-          ? b.dataInicio 
-          : b.dataInicio.toISOString().split('T')[0],
-        escala: b.escala,
-      })),
-    };
+export function DashboardSaldos() {
+  const { bombeiros, calculos, removerBombeiro } = useEscala();
+  const { tamanhoDashboard } = useLayout();
+  const [bombeiroEmEdicao, setBombeiroEmEdicao] = useState<string | null>(null);
 
-    // Criar arquivo JSON
-    const json = JSON.stringify(dadosExportacao, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `controle-bombeiros-${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-
-    toast.success(`✅ Dados exportados! ${bombeiros.length} bombeiro(s) salvos.`);
+  const gridConfig = {
+    compacto: 'grid-cols-2 md:grid-cols-3 lg:grid-cols-5',
+    normal: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4',
+    grande: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
   };
 
-  const importarDados = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const conteudo = e.target?.result as string;
-        const dados = JSON.parse(conteudo);
-
-        // Validar estrutura
-        if (!dados.bombeiros || !Array.isArray(dados.bombeiros)) {
-          toast.error('❌ Arquivo JSON inválido');
-          return;
-        }
-
-        // Converter datas de volta para Date
-        const bombeirosImportados = dados.bombeiros.map((b: any) => ({
-          ...b,
-          dataInicio: new Date(b.dataInicio),
-          escala: b.escala || {},
-        }));
-
-        // Perguntar se quer substituir ou mesclar
-        const confirmar = window.confirm(
-          `Importar ${bombeirosImportados.length} bombeiro(s)?\n\n` +
-          'Clique OK para SUBSTITUIR todos os dados atuais.\n' +
-          'Clique CANCELAR para MESCLAR com os dados existentes.'
-        );
-
-        if (confirmar) {
-          // Substituir
-          setBombeiros(bombeirosImportados);
-          toast.success(`✅ Dados substituídos! ${bombeirosImportados.length} bombeiro(s) importados.`);
-        } else {
-          // Mesclar - adicionar bombeiros que não existem
-          const idsExistentes = new Set(bombeiros.map(b => b.id));
-          const bombeirosNovos = bombeirosImportados.filter((b: any) => !idsExistentes.has(b.id));
-          
-          if (bombeirosNovos.length > 0) {
-            setBombeiros([...bombeiros, ...bombeirosNovos]);
-            toast.success(`✅ ${bombeirosNovos.length} bombeiro(s) novo(s) adicionado(s).`);
-          } else {
-            toast.info('ℹ️ Nenhum bombeiro novo para adicionar.');
-          }
-        }
-      } catch (erro) {
-        console.error('Erro ao importar:', erro);
-        toast.error('❌ Erro ao importar arquivo JSON');
-      }
-    };
-
-    reader.readAsText(file);
-
-    // Limpar input para permitir selecionar o mesmo arquivo novamente
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
+  if (bombeiros.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-slate-500">
+        <p className="text-lg font-bold uppercase tracking-widest">Nenhum bombeiro encontrado</p>
+        <p className="text-xs">Adicione bombeiros na aba "Bombeiros" ou importe uma planilha.</p>
+      </div>
+    );
+  }
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-sm flex items-center gap-2">
-          <Share2 className="w-4 h-4" />
-          Compartilhar Dados
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="space-y-2">
-          <p className="text-xs text-gray-600">
-            Exporte seus dados em JSON para compartilhar com colegas ou fazer backup.
-          </p>
-          
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              variant="default"
-              onClick={exportarDados}
-              className="flex-1"
-              disabled={bombeiros.length === 0}
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Exportar JSON
-            </Button>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-black text-white uppercase italic tracking-tight">Dashboard de Folgas Obrigatórias</h2>
+      </div>
 
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => fileInputRef.current?.click()}
-              className="flex-1"
-            >
-              <Upload className="w-4 h-4 mr-2" />
-              Importar JSON
-            </Button>
-          </div>
+      <div className={`grid ${gridConfig[tamanhoDashboard]} gap-4`}>
+        {ordenarBombeiros(bombeiros).map(bombeiro => {
+          const calculo = calculos[bombeiro.id] || {
+            foConquistadas: 0,
+            foUsadas: 0,
+            foDisponiveis: 0,
+            saldoCicloAtual: 0,
+          };
 
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".json"
-            onChange={importarDados}
-            className="hidden"
-          />
-        </div>
+          return (
+            <div key={bombeiro.id} className="group">
+              <EditorBombeiro
+                bombeiro={bombeiro}
+                isOpen={bombeiroEmEdicao === bombeiro.id}
+                onClose={() => setBombeiroEmEdicao(null)}
+              />
+              <div className="bg-[#0F172A] border border-slate-800 rounded-2xl overflow-hidden hover:border-slate-600 transition-all shadow-xl">
+                <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/50">
+                  <div className="flex items-center gap-3">
+                    <div className={`h-8 w-8 rounded-lg flex items-center justify-center font-black text-[10px] text-white ${
+                      bombeiro.equipe === 'VD' ? 'bg-green-600' : 
+                      bombeiro.equipe === 'AM' ? 'bg-yellow-500 text-black' : 
+                      'bg-blue-600'
+                    }`}>
+                      {bombeiro.equipe}
+                    </div>
+                    <span className="font-bold text-slate-100 text-sm uppercase truncate max-w-[120px]">
+                      {bombeiro.nome}
+                    </span>
+                  </div>
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => setBombeiroEmEdicao(bombeiro.id)}
+                      className="p-1.5 text-slate-400 hover:text-blue-400 transition-colors"
+                    >
+                      <Edit2 size={14} />
+                    </button>
+                    <button
+                      onClick={() => confirm(`Remover ${bombeiro.nome}?`) && removerBombeiro(bombeiro.id)}
+                      className="p-1.5 text-slate-400 hover:text-red-400 transition-colors"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
 
-        <div className="bg-blue-50 border border-blue-200 rounded p-2">
-          <p className="text-xs text-blue-800">
-            💡 <strong>Como usar:</strong> Clique em "Exportar JSON", envie o arquivo para seu colega via WhatsApp/Email, e ele clica em "Importar JSON" para carregar os dados.
-          </p>
-        </div>
-      </CardContent>
-    </Card>
+                <div className="p-4 space-y-3">
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="bg-slate-800/50 p-2 rounded-xl border border-slate-700/50 text-center">
+                      <p className="text-[8px] font-black text-slate-500 uppercase mb-1">Conquistadas</p>
+                      <p className="text-lg font-black text-green-500">{calculo.foConquistadas}</p>
+                    </div>
+                    <div className="bg-slate-800/50 p-2 rounded-xl border border-slate-700/50 text-center">
+                      <p className="text-[8px] font-black text-slate-500 uppercase mb-1">Usadas</p>
+                      <p className="text-lg font-black text-orange-500">{calculo.foUsadas}</p>
+                    </div>
+                    <div className="bg-slate-800/50 p-2 rounded-xl border border-slate-700/50 text-center">
+                      <p className="text-[8px] font-black text-slate-500 uppercase mb-1">Disponível</p>
+                      <p className="text-lg font-black text-blue-500">{calculo.foDisponiveis}</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-800/30 p-3 rounded-xl border border-slate-700/30">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Progresso do Ciclo</span>
+                      <span className="text-[10px] font-black text-white bg-slate-700 px-2 py-0.5 rounded">{calculo.saldoCicloAtual}/9</span>
+                    </div>
+                    <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                      <div
+                        className="bg-red-600 h-full transition-all duration-500"
+                        style={{ width: `${(calculo.saldoCicloAtual / 9) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }

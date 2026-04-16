@@ -1,21 +1,31 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Layout } from './components/Layout';
-import Home from './pages/Home';
-// Importe outras páginas aqui se existirem, ex:
-// import Escalas from './pages/Escalas';
+import { EscalaProvider } from './contexts/EscalaContext';
+import { LayoutProvider } from './contexts/LayoutContext';
+import { DashboardSaldos } from './components/DashboardSaldos';
+import { GerenciadorBombeiros } from './components/GerenciadorBombeiros';
+import { CalendarioDinamico } from './components/CalendarioDinamico';
+import { ImportadorExcel } from './components/ImportadorExcel';
+import { Toaster } from 'sonner';
 
 function App() {
   return (
-    <Router>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          {/* Se você tiver uma página de escalas, adicione a linha abaixo: */}
-          {/* <Route path="/escalas" element={<Escalas />} /> */}
-        </Routes>
-      </Layout>
-    </Router>
+    <LayoutProvider>
+      <EscalaProvider>
+        <Router>
+          <Layout>
+            <Routes>
+              <Route path="/" element={<DashboardSaldos />} />
+              <Route path="/bombeiros" element={<GerenciadorBombeiros />} />
+              <Route path="/escalas" element={<CalendarioDinamico />} />
+              <Route path="/importar" element={<ImportadorExcel />} />
+            </Routes>
+          </Layout>
+          <Toaster position="top-right" />
+        </Router>
+      </EscalaProvider>
+    </LayoutProvider>
   );
 }
 
