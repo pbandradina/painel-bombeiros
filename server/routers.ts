@@ -1,15 +1,36 @@
-list: publicProcedure.query(async () => {
-  try {
-    const data = await getBombeiros();
-    return data.map((b: any) => ({
-      id: b.id,
-      nome: b.nome || "Sem Nome",
-      equipe: b.equipe || "VD",
-      dataInicio: b.data_inicio || new Date().toISOString(),
-      escalas: [] // Retornamos vazio por enquanto para o build passar
-    }));
-  } catch (e) {
-    console.error("Erro no roteador:", e);
-    throw new Error("Erro ao buscar dados");
-  }
-}),
+import { router, publicProcedure } from "./trpc";
+import { z } from "zod";
+import { supabase } from "./db";
+
+export const appRouter = router({
+  bombeiros: router({
+    // LISTAR TUDO (Igual ao Manus)
+    list: publicProcedure.query(async () => {
+      const { data, error } = await supabase
+        .from("bombeiros")
+        .select(`*, escalas(*)`); // Puxa o bombeiro e todas as siglas dele
+
+      if (error) throw new Error(error.message);
+      return data || [];
+    }),
+
+    // CRIAR (Igual ao Manus)
+    create: publicProcedure
+      .input(z.object({ nome: z.string(), equipe: z.string(), dataInicio: z.date() }))
+      .mutation(async ({ input }) => {
+        const { data, error } = await supabase.from("bombeiros").insert([{
+          nome: input.nome.toUpperCase(),
+          equipe: input.equipe,
+          data_inicio: input.dataInicio.toISOString()
+        }]).select();
+        if (error) throw new Error(error.message);
+        return data[0];
+      }),
+
+    // EXCLUIR
+    delete: publicProcedure.input(z.string()).mutation(async ({ input }) => {
+      await supabase.from("bombeiros").delete().eq("id", input);
+      return { success: true };
+    }),
+  })
+});
