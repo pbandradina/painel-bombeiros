@@ -1,31 +1,20 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Layout } from './components/Layout';
-import { EscalaProvider } from './contexts/EscalaContext';
-import { LayoutProvider } from './contexts/LayoutContext';
-import { DashboardSaldos } from './components/DashboardSaldos';
-import { GerenciadorBombeiros } from './components/GerenciadorBombeiros';
-import { CalendarioDinamico } from './components/CalendarioDinamico';
-import { ImportadorExcel } from './components/ImportadorExcel';
-import { Toaster } from 'sonner';
+import Home from './pages/Home';
+import Escalas from './pages/Escalas'; // <--- Importe a nova página
 
 function App() {
   return (
-    <LayoutProvider>
-      <EscalaProvider>
-        <Router>
-          <Layout>
-            <Routes>
-              <Route path="/" element={<DashboardSaldos />} />
-              <Route path="/bombeiros" element={<GerenciadorBombeiros />} />
-              <Route path="/escalas" element={<CalendarioDinamico />} />
-              <Route path="/importar" element={<ImportadorExcel />} />
-            </Routes>
-          </Layout>
-          <Toaster position="top-right" />
-        </Router>
-      </EscalaProvider>
-    </LayoutProvider>
+    <Router>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/bombeiros" element={<Home />} />
+          <Route path="/escalas" element={<Escalas />} />
+        </Routes>
+      </Layout>
+    </Router>
   );
 }
 
