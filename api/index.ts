@@ -1,12 +1,14 @@
-import * as trpcExpress from "@trpc/server/adapters/express";
 import express from "express";
-// Importa o seu appRouter da pasta server
-import { appRouter } from "../server/routers"; 
+import * as trpcExpress from "@trpc/server/adapters/express";
+import { appRouter } from "./routers";
+import cors from "cors";
 
 const app = express();
+
+app.use(cors());
 app.use(express.json());
 
-// Configura o endpoint que o seu Frontend vai chamar
+// Rota oficial da API que o seu Frontend chama
 app.use(
   "/api/trpc",
   trpcExpress.createExpressMiddleware({
@@ -15,4 +17,5 @@ app.use(
   })
 );
 
+// Exportar para a Vercel usar como Serverless Function
 export default app;
