@@ -1,36 +1,7 @@
-import { router, publicProcedure } from "./trpc";
-import { z } from "zod";
-import { supabase } from "./db";
+import { createTRPCReact } from '@trpc/react-query';
+import { httpBatchLink } from '@trpc/client';
+import superjson from 'superjson';
+import type { AppRouter } from '../../../server/routers';
 
-export const appRouter = router({
-  bombeiros: router({
-    // LISTAR TUDO (Igual ao Manus)
-    list: publicProcedure.query(async () => {
-      const { data, error } = await supabase
-        .from("bombeiros")
-        .select(`*, escalas(*)`); // Puxa o bombeiro e todas as siglas dele
-
-      if (error) throw new Error(error.message);
-      return data || [];
-    }),
-
-    // CRIAR (Igual ao Manus)
-    create: publicProcedure
-      .input(z.object({ nome: z.string(), equipe: z.string(), dataInicio: z.date() }))
-      .mutation(async ({ input }) => {
-        const { data, error } = await supabase.from("bombeiros").insert([{
-          nome: input.nome.toUpperCase(),
-          equipe: input.equipe,
-          data_inicio: input.dataInicio.toISOString()
-        }]).select();
-        if (error) throw new Error(error.message);
-        return data[0];
-      }),
-
-    // EXCLUIR
-    delete: publicProcedure.input(z.string()).mutation(async ({ input }) => {
-      await supabase.from("bombeiros").delete().eq("id", input);
-      return { success: true };
-    }),
-  })
-});
+// Criar o objeto trpc principal
+export const trpc = createTRPCReact<AppRouter>();
