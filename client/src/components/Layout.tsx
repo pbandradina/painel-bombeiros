@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, Calendar, LogOut, Bell, Flame } from 'lucide-react';
+import { LayoutDashboard, Users, Calendar, LogOut, Bell } from 'lucide-react';
 
 export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const navigate = useNavigate();
@@ -14,32 +14,61 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
   return (
     <div className="flex h-screen bg-[#020617] text-slate-200 font-sans overflow-hidden">
-      <aside className="w-64 bg-[#0F172A] border-r border-slate-800 flex flex-col">
+      {/* SIDEBAR */}
+      <aside className="w-64 bg-[#0F172A] border-r border-slate-800 flex flex-col shadow-2xl z-20">
         <div className="p-6 flex flex-col items-center gap-3 border-b border-slate-800">
-          <Flame className="text-red-500" size={32} />
-          <span className="text-xl font-black text-white italic">SGB-PAINEL</span>
+          {/* BRASÃO NO LUGAR DO FOGO */}
+          <img 
+            src="/logo-20gb.png" 
+            alt="Brasão 20º GB" 
+            className="w-20 h-20 object-contain drop-shadow-[0_0_10px_rgba(255,0,0,0.3)]" 
+          />
+          <span className="text-xl font-black text-white italic tracking-tighter">SGB-PAINEL</span>
         </div>
-        <nav className="flex-1 p-4 space-y-2">
+
+        <nav className="flex-1 px-4 py-6 space-y-2">
           {menuItems.map((item) => (
             <button
               key={item.path}
               onClick={() => navigate(item.path)}
-              className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${
-                location.pathname === item.path ? 'bg-red-600 text-white' : 'hover:bg-slate-800'
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                location.pathname === item.path 
+                ? 'bg-red-600 text-white shadow-lg shadow-red-900/40' 
+                : 'text-slate-400 hover:bg-slate-800 hover:text-white'
               }`}
             >
               <item.icon size={20} />
-              <span className="text-sm font-bold">{item.name}</span>
+              <span className="font-bold text-sm">{item.name}</span>
             </button>
           ))}
         </nav>
+
+        <div className="p-4 border-t border-slate-800">
+          <button className="flex items-center gap-3 px-4 py-3 w-full text-slate-500 hover:text-red-400 transition-colors">
+            <LogOut size={20} />
+            <span className="text-xs font-black uppercase">Sair</span>
+          </button>
+        </div>
       </aside>
-      <div className="flex-1 flex flex-col">
-        <header className="h-16 border-b border-slate-800 flex items-center justify-between px-8 bg-[#020617]/50">
-          <div className="text-xs font-bold text-slate-500 uppercase tracking-widest">20º GB / ANDRADINA</div>
-          <div className="flex items-center gap-4"><Bell size={20}/><div className="h-8 w-8 bg-red-600 rounded flex items-center justify-center text-white font-black text-xs">AD</div></div>
+
+      {/* ÁREA DE CONTEÚDO */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <header className="h-16 border-b border-slate-800 flex items-center justify-between px-8 bg-[#020617]/80 backdrop-blur-md z-10">
+          <div className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">
+             20º GB / <span className="text-red-500">Andradina</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <button className="text-slate-400 hover:text-white"><Bell size={20}/></button>
+            {/* SIGLA AD (ANDRADINA / ADMIN) */}
+            <div className="h-8 w-8 bg-red-600 rounded-lg flex items-center justify-center text-white font-black text-xs shadow-lg shadow-red-900/30">
+              AD
+            </div>
+          </div>
         </header>
-        <main className="flex-1 overflow-y-auto p-8">{children}</main>
+
+        <main className="flex-1 overflow-y-auto p-8">
+          {children}
+        </main>
       </div>
     </div>
   );
