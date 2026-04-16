@@ -127,7 +127,7 @@ export function CalendarioDinamico() {
                 if (dia === null) return <div key={`empty-${i}`} className="aspect-square border-r border-b border-slate-800/50 bg-slate-900/20" />;
                 const data = new Date(ano, mes, dia);
                 const chave = formatarData(data);
-                const sigla = bombeiro?.escala[chave] || '';
+                const sigla = bombeiro?.escalas[chave] || '';
                 const corOficial = getCorOficial(data);
                 const isPeriodoFO = calculo ? getPeriodoFONaData(chave, calculo) : false;
                 const siglaConfig = SIGLAS_DISPONIVEIS.find(s => s.sigla === sigla);

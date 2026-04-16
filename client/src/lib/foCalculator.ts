@@ -1,14 +1,4 @@
 // client/src/lib/foCalculator.ts
-// LÓGICA LITERAL MANUS COM EXPORTS COMPLETOS
-
-export interface Bombeiro {
-  id: string;
-  nome: string;
-  equipe: string;
-  data_inicio: string;
-  escalas: { data: string; sigla: string }[];
-}
-
 export interface PeriodoConquista {
   numero: number;
   dataInicio: string;
@@ -21,22 +11,16 @@ export interface CalculoFO {
   foUsadas: number;
   foDisponiveis: number;
   saldoCicloAtual: number;
+  // Aliases para compatibilidade com componentes antigos:
+  conquistadas?: number;
+  disponiveis?: number;
+  progresso?: number;
   periodosConquista: PeriodoConquista[];
 }
 
 export const INTERRUPT_CODES = new Set(['F', 'LP', 'DS', 'LT', 'D', 'LTS', 'C', 'CFS', 'CAS', 'EAP', 'TAF']);
 export const COLORS_CYCLE = ['VD', 'AM', 'AZ'];
 
-// --- FUNÇÃO QUE ESTAVA FALTANDO ---
-export function calcularTodosBombeiros(bombeiros: any[], ateDia: Date = new Date()): Record<string, CalculoFO> {
-  const resultados: Record<string, CalculoFO> = {};
-  for (const bombeiro of bombeiros) {
-    resultados[bombeiro.id] = calcularFO(bombeiro, ateDia);
-  }
-  return resultados;
-}
-
-// --- FUNÇÃO PRINCIPAL DE CÁLCULO ---
 export function calcularFO(bombeiro: any, ateDia: Date = new Date()): CalculoFO {
   let foConquistadas = 0;
   let foUsadas = 0;
@@ -47,16 +31,14 @@ export function calcularFO(bombeiro: any, ateDia: Date = new Date()): CalculoFO 
   const dataReferencia = new Date(2026, 0, 1);
   const dataInicioBombeiro = new Date(bombeiro.data_inicio || bombeiro.dataInicio);
   
-  const escala = (bombeiro.escalas || []).reduce((acc: any, curr: any) => {
-    acc[curr.data] = curr.sigla;
-    return acc;
-  }, {});
+  const escalasRaw = bombeiro.escalas || bombeiro.escala || [];
+  const escala = Array.isArray(escalasRaw) 
+    ? escalasRaw.reduce((acc: any, curr: any) => ({ ...acc, [curr.data]: curr.sigla }), {})
+    : escalasRaw;
 
   let dataAtual = new Date(2026, 0, 1);
-
   while (dataAtual <= ateDia) {
     const chave = dataAtual.toISOString().split('T')[0];
-    
     if (dataAtual >= dataInicioBombeiro) {
       const corOficial = getCorOficial(dataAtual);
       const valor = (escala[chave] || '').toUpperCase().trim();
@@ -64,23 +46,16 @@ export function calcularFO(bombeiro: any, ateDia: Date = new Date()): CalculoFO 
       if (valor === corOficial) {
         if (cicloAtualServicos === 0) dataInicioConquista = chave;
         cicloAtualServicos++;
-
         if (cicloAtualServicos >= 9) {
           foConquistadas++;
-          periodosConquista.push({
-            numero: foConquistadas,
-            dataInicio: dataInicioConquista!,
-            dataFim: chave,
-          });
+          periodosConquista.push({ numero: foConquistadas, dataInicio: dataInicioConquista!, dataFim: chave });
           cicloAtualServicos = 0;
           dataInicioConquista = null;
         }
-      }
-      else if (INTERRUPT_CODES.has(valor)) {
+      } else if (INTERRUPT_CODES.has(valor)) {
         cicloAtualServicos = 0;
         dataInicioConquista = null;
-      }
-      else if (valor === 'FO') {
+      } else if (valor === 'FO') {
         foUsadas++;
         const conquistaLivre = periodosConquista.find(p => !p.dataUso);
         if (conquistaLivre) conquistaLivre.dataUso = chave;
@@ -94,6 +69,10 @@ export function calcularFO(bombeiro: any, ateDia: Date = new Date()): CalculoFO 
     foUsadas,
     foDisponiveis: Math.max(0, foConquistadas - foUsadas),
     saldoCicloAtual: cicloAtualServicos,
+    // Atribuindo os nomes antigos para os componentes não quebrarem:
+    conquistadas: foConquistadas,
+    disponiveis: Math.max(0, foConquistadas - foUsadas),
+    progresso: cicloAtualServicos,
     periodosConquista,
   };
 }
