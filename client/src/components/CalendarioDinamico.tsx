@@ -129,7 +129,7 @@ export function CalendarioDinamico() {
                 const chave = formatarData(data);
                 const sigla = bombeiro?.escalas[chave] || '';
                 const corOficial = getCorOficial(data);
-                const isPeriodoFO = calculo ? getPeriodoFONaData(chave, calculo) : false;
+                const isPeriodoFO = calculo ? getPeriodoFONaData(calculo.periodosConquista, chave) : false;
                 const siglaConfig = SIGLAS_DISPONIVEIS.find(s => s.sigla === sigla);
 
                 return (
