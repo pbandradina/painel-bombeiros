@@ -5,21 +5,14 @@
   "env": {
     "NODE_ENV": "production"
   },
-  "functions": {
-    "api/trpc.ts": {
-      "runtime": "nodejs22.x",
-      "memory": 1024,
-      "maxDuration": 60
-    }
-  },
   "rewrites": [
     {
       "source": "/api/trpc/(.*)",
-      "destination": "/api/trpc"
+      "destination": "/api/[[...trpc]]"
     },
     {
       "source": "/api/health",
-      "destination": "/api/trpc"
+      "destination": "/api/[[...trpc]]"
     },
     {
       "source": "/(.*)",
