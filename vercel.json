@@ -6,10 +6,17 @@
   "env": {
     "NODE_ENV": "production"
   },
+  "functions": {
+    "api.js": {
+      "runtime": "nodejs22.x",
+      "memory": 1024,
+      "maxDuration": 60
+    }
+  },
   "rewrites": [
     {
       "source": "/api/trpc/(.*)",
-      "destination": "/api/index.js"
+      "destination": "/api.js"
     },
     {
       "source": "/(.*)",
