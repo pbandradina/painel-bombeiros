@@ -68,25 +68,8 @@ export function GerenciadorBombeiros() {
         dataInicio: new Date().toISOString().split('T')[0],
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error(`❌ Erro ao adicionar: ${error.message}`);
-    },
-  });
-
-  const updateMutation = trpc.bombeiros.update.useMutation({
-    onSuccess: () => {
-      utils.bombeiros.list.invalidate();
-      toast.success(`✅ Bombeiro "${formData.nome}" atualizado!`);
-      setDialogAberto(false);
-      setEditandoId(null);
-      setFormData({
-        nome: '',
-        equipe: 'VD',
-        dataInicio: new Date().toISOString().split('T')[0],
-      });
-    },
-    onError: (error) => {
-      toast.error(`❌ Erro ao atualizar: ${error.message}`);
     },
   });
 
@@ -95,7 +78,7 @@ export function GerenciadorBombeiros() {
       utils.bombeiros.list.invalidate();
       toast.success('✅ Bombeiro removido!');
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error(`❌ Erro ao remover: ${error.message}`);
     },
   });
@@ -140,23 +123,12 @@ export function GerenciadorBombeiros() {
       return;
     }
 
-    if (editandoId) {
-      // Editar bombeiro existente
-      updateMutation.mutate({
-        id: editandoId,
-        nome: formData.nome.trim(),
-        equipe: formData.equipe,
-        dataInicio: new Date(formData.dataInicio),
-      });
-    } else {
-      // Adicionar novo bombeiro
-      createMutation.mutate({
-        id: crypto.randomUUID(),
-        nome: formData.nome.trim(),
-        equipe: formData.equipe,
-        dataInicio: new Date(formData.dataInicio),
-      });
-    }
+    // Adicionar novo bombeiro
+    createMutation.mutate({
+      nome: formData.nome.trim(),
+      equipe: formData.equipe,
+      dataInicio: new Date(formData.dataInicio),
+    });
   };
 
   const handleRemoverBombeiro = (id: string) => {
@@ -241,10 +213,10 @@ export function GerenciadorBombeiros() {
                 </div>
                 <Button
                   onClick={handleSalvarBombeiro}
-                  disabled={createMutation.isPending || updateMutation.isPending}
+                  disabled={createMutation.isPending}
                   className="w-full"
                 >
-                  {createMutation.isPending || updateMutation.isPending ? (
+                  {createMutation.isPending ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                       Salvando...
