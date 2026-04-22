@@ -5,14 +5,20 @@
   "env": {
     "NODE_ENV": "production"
   },
+  "functions": {
+    "api/index.js": {
+      "memory": 1024,
+      "maxDuration": 30
+    }
+  },
   "rewrites": [
     {
       "source": "/api/trpc/(.*)",
-      "destination": "/api/[[...trpc]]"
+      "destination": "/api/index.js"
     },
     {
       "source": "/api/health",
-      "destination": "/api/[[...trpc]]"
+      "destination": "/api/index.js"
     },
     {
       "source": "/(.*)",
