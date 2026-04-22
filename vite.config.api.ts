@@ -16,13 +16,12 @@ export default defineConfig({
       output: {
         dir: 'dist',
         format: 'es',
-        preserveModules: true,
-        preserveModulesRoot: 'api',
-        entryFileNames: '[name].js',
+        entryFileNames: 'api/index.js',
       },
     },
     minify: false,
     sourcemap: true,
+    ssr: true,
   },
   resolve: {
     alias: {
