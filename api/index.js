@@ -117,5 +117,13 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
-// Exportar como default para Vercel
-module.exports = app;
+// Exportar como handler do Vercel
+module.exports = (req, res) => {
+  // Remover o prefixo /api se existir
+  if (req.url.startsWith("/api")) {
+    req.url = req.url.slice(4);
+  }
+  
+  // Delegar para o Express
+  app(req, res);
+};
