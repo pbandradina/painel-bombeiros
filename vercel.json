@@ -1,12 +1,12 @@
 {
   "version": 2,
-  "buildCommand": "npm run build && echo 'Build complete'",
+  "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "env": {
     "NODE_ENV": "production"
   },
   "functions": {
-    "api.mjs": {
+    "api/trpc.ts": {
       "runtime": "nodejs22.x",
       "memory": 1024,
       "maxDuration": 60
@@ -15,11 +15,11 @@
   "rewrites": [
     {
       "source": "/api/trpc/(.*)",
-      "destination": "/api.mjs"
+      "destination": "/api/trpc"
     },
     {
       "source": "/api/health",
-      "destination": "/api.mjs"
+      "destination": "/api/trpc"
     },
     {
       "source": "/(.*)",

@@ -47,9 +47,9 @@ export function DashboardSaldos() {
   const [bombeiroEmEdicao, setBombeiroEmEdicao] = useState<string | null>(null);
 
   const gridConfig = {
-    compacto: 'grid-cols-2 md:grid-cols-3 lg:grid-cols-5',
-    normal: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4',
-    grande: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
+    compacto: 'grid-cols-3 md:grid-cols-4 lg:grid-cols-6',
+    normal: 'grid-cols-2 md:grid-cols-3 lg:grid-cols-5',
+    grande: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4',
   };
 
   if (bombeiros.length === 0) {
