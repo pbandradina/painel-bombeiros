@@ -18,31 +18,20 @@ const publicProcedure = t.procedure;
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "";
 const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || "";
 
-if (!supabaseUrl || !supabaseKey) {
-  console.error("❌ CRÍTICO: Variáveis de ambiente do Supabase não encontradas.");
-  console.error("SUPABASE_URL:", supabaseUrl ? "✓" : "✗");
-  console.error("SUPABASE_ANON_KEY:", supabaseKey ? "✓" : "✗");
-}
-
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Definir routers
 const appRouter = router({
   bombeiros: router({
-    // Lista todos os bombeiros
     list: publicProcedure.query(async () => {
       const { data, error } = await supabase
         .from("bombeiros")
         .select(`*, escalas(*)`);
       
-      if (error) {
-        console.error("Erro ao listar:", error.message);
-        throw new Error(error.message);
-      }
+      if (error) throw new Error(error.message);
       return data || [];
     }),
 
-    // Cria novo bombeiro
     create: publicProcedure
       .input(z.object({ 
         nome: z.string(), 
@@ -50,29 +39,19 @@ const appRouter = router({
         dataInicio: z.date() 
       }))
       .mutation(async ({ input }) => {
-        try {
-          const { data, error } = await supabase
-            .from("bombeiros")
-            .insert([{
-              nome: input.nome.toUpperCase(),
-              equipe: input.equipe,
-              data_inicio: input.dataInicio.toISOString()
-            }])
-            .select();
+        const { data, error } = await supabase
+          .from("bombeiros")
+          .insert([{
+            nome: input.nome.toUpperCase(),
+            equipe: input.equipe,
+            data_inicio: input.dataInicio.toISOString()
+          }])
+          .select();
 
-          if (error) {
-            console.error("Erro Supabase Insert:", error.message);
-            throw new Error(error.message);
-          }
-          
-          return data?.[0];
-        } catch (e) {
-          console.error("Erro interno no servidor:", e.message);
-          throw new Error("Falha ao salvar bombeiro no banco.");
-        }
+        if (error) throw new Error(error.message);
+        return data?.[0];
       }),
 
-    // Deleta bombeiro
     delete: publicProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
@@ -81,30 +60,21 @@ const appRouter = router({
           .delete()
           .eq("id", input.id);
 
-        if (error) {
-          console.error("Erro ao deletar:", error.message);
-          throw new Error(error.message);
-        }
-
+        if (error) throw new Error(error.message);
         return { success: true };
       }),
   }),
 
   escalas: router({
-    // Lista todas as escalas
     list: publicProcedure.query(async () => {
       const { data, error } = await supabase
         .from("escalas")
         .select("*");
       
-      if (error) {
-        console.error("Erro ao listar escalas:", error.message);
-        throw new Error(error.message);
-      }
+      if (error) throw new Error(error.message);
       return data || [];
     }),
 
-    // Cria nova escala
     create: publicProcedure
       .input(z.object({ 
         bombeiro_id: z.number(),
@@ -121,11 +91,7 @@ const appRouter = router({
           }])
           .select();
 
-        if (error) {
-          console.error("Erro ao criar escala:", error.message);
-          throw new Error(error.message);
-        }
-
+        if (error) throw new Error(error.message);
         return data?.[0];
       }),
   }),
@@ -137,7 +103,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Rota oficial da API que o seu Frontend chama
+// Rota da API tRPC
 app.use(
   "/api/trpc",
   trpcExpress.createExpressMiddleware({
@@ -151,5 +117,5 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
-// Exportar para a Vercel usar como Serverless Function
+// Exportar como default para Vercel
 module.exports = app;
