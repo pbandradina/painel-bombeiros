@@ -22,59 +22,87 @@ export const INTERRUPT_CODES = new Set(['F', 'LP', 'DS', 'LT', 'D', 'LTS', 'C', 
 export const COLORS_CYCLE = ['VD', 'AM', 'AZ'];
 
 export function calcularFO(bombeiro: any, ateDia: Date = new Date()): CalculoFO {
-  let foConquistadas = 0;
-  let foUsadas = 0;
-  let cicloAtualServicos = 0;
-  const periodosConquista: PeriodoConquista[] = [];
-  let dataInicioConquista: string | null = null;
+  try {
+    let foConquistadas = 0;
+    let foUsadas = 0;
+    let cicloAtualServicos = 0;
+    const periodosConquista: PeriodoConquista[] = [];
+    let dataInicioConquista: string | null = null;
 
-  const dataReferencia = new Date(2026, 0, 1);
-  const dataInicioBombeiro = new Date(bombeiro.data_inicio || bombeiro.dataInicio);
-  
-  const escalasRaw = bombeiro.escalas || bombeiro.escala || [];
-  const escala = Array.isArray(escalasRaw) 
-    ? escalasRaw.reduce((acc: any, curr: any) => ({ ...acc, [curr.data]: curr.sigla }), {})
-    : escalasRaw;
+    const dataReferencia = new Date(2026, 0, 1);
+    const dataInicioBombeiro = new Date(bombeiro.data_inicio || bombeiro.dataInicio);
+    
+    // Validar data de início
+    if (isNaN(dataInicioBombeiro.getTime())) {
+      console.warn(`[DEBUG] Data de início inválida para ${bombeiro.nome}`);
+      return {
+        foConquistadas: 0,
+        foUsadas: 0,
+        foDisponiveis: 0,
+        saldoCicloAtual: 0,
+        conquistadas: 0,
+        disponiveis: 0,
+        progresso: 0,
+        periodosConquista: [],
+      };
+    }
+    
+    const escalasRaw = bombeiro.escalas || bombeiro.escala || [];
+    const escala = Array.isArray(escalasRaw) 
+      ? escalasRaw.reduce((acc: any, curr: any) => ({ ...acc, [curr.data]: curr.sigla }), {})
+      : escalasRaw;
 
-  let dataAtual = new Date(2026, 0, 1);
-  while (dataAtual <= ateDia) {
-    const chave = dataAtual.toISOString().split('T')[0];
-    if (dataAtual >= dataInicioBombeiro) {
-      const corOficial = getCorOficial(dataAtual);
-      const valor = (escala[chave] || '').toUpperCase().trim();
+    let dataAtual = new Date(2026, 0, 1);
+    while (dataAtual <= ateDia) {
+      const chave = dataAtual.toISOString().split('T')[0];
+      if (dataAtual >= dataInicioBombeiro) {
+        const corOficial = getCorOficial(dataAtual);
+        const valor = (escala[chave] || '').toUpperCase().trim();
 
-      if (valor === corOficial) {
-        if (cicloAtualServicos === 0) dataInicioConquista = chave;
-        cicloAtualServicos++;
-        if (cicloAtualServicos >= 9) {
-          foConquistadas++;
-          periodosConquista.push({ numero: foConquistadas, dataInicio: dataInicioConquista!, dataFim: chave });
+        if (valor === corOficial) {
+          if (cicloAtualServicos === 0) dataInicioConquista = chave;
+          cicloAtualServicos++;
+          if (cicloAtualServicos >= 9) {
+            foConquistadas++;
+            periodosConquista.push({ numero: foConquistadas, dataInicio: dataInicioConquista!, dataFim: chave });
+            cicloAtualServicos = 0;
+            dataInicioConquista = null;
+          }
+        } else if (INTERRUPT_CODES.has(valor)) {
           cicloAtualServicos = 0;
           dataInicioConquista = null;
+        } else if (valor === 'FO') {
+          foUsadas++;
+          const conquistaLivre = periodosConquista.find(p => !p.dataUso);
+          if (conquistaLivre) conquistaLivre.dataUso = chave;
         }
-      } else if (INTERRUPT_CODES.has(valor)) {
-        cicloAtualServicos = 0;
-        dataInicioConquista = null;
-      } else if (valor === 'FO') {
-        foUsadas++;
-        const conquistaLivre = periodosConquista.find(p => !p.dataUso);
-        if (conquistaLivre) conquistaLivre.dataUso = chave;
       }
+      dataAtual.setDate(dataAtual.getDate() + 1);
     }
-    dataAtual.setDate(dataAtual.getDate() + 1);
-  }
 
-  return {
-    foConquistadas,
-    foUsadas,
-    foDisponiveis: Math.max(0, foConquistadas - foUsadas),
-    saldoCicloAtual: cicloAtualServicos,
-    // Atribuindo os nomes antigos para os componentes não quebrarem:
-    conquistadas: foConquistadas,
-    disponiveis: Math.max(0, foConquistadas - foUsadas),
-    progresso: cicloAtualServicos,
-    periodosConquista,
-  };
+    return {
+      foConquistadas,
+      foUsadas,
+      foDisponiveis: Math.max(0, foConquistadas - foUsadas),
+      saldoCicloAtual: cicloAtualServicos,
+      conquistadas: foConquistadas,
+      disponiveis: Math.max(0, foConquistadas - foUsadas),
+      progresso: cicloAtualServicos,
+      periodosConquista,
+    };
+  } catch (erro) {
+    console.error(`[DEBUG] Erro ao calcular FO para ${bombeiro.nome}:`, erro);
+    return {
+      foConquistadas: 0,
+      foUsadas: 0,
+      foDisponiveis: 0,
+      saldoCicloAtual: 0,
+      conquistadas: 0,
+      disponiveis: 0,
+      progresso: 0,
+      periodosConquista: [],
+    };
+  }
 }
 
 export function getCorOficial(data: Date): string {
