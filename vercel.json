@@ -7,7 +7,7 @@
     "NODE_ENV": "production"
   },
   "functions": {
-    "api.js": {
+    "api/index.mjs": {
       "runtime": "nodejs22.x",
       "memory": 1024,
       "maxDuration": 60
@@ -16,7 +16,11 @@
   "rewrites": [
     {
       "source": "/api/trpc/(.*)",
-      "destination": "/api.js"
+      "destination": "/api/index.mjs"
+    },
+    {
+      "source": "/api/health",
+      "destination": "/api/index.mjs"
     },
     {
       "source": "/(.*)",
