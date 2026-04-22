@@ -1,6 +1,6 @@
-import { router, publicProcedure } from "./trpc";
+import { router, publicProcedure } from "./trpc.js";
 import { z } from "zod";
-import { supabase } from "./db";
+import { supabase } from "./db.js";
 
 export const appRouter = router({
   bombeiros: router({
