@@ -78,12 +78,25 @@ export function CalendarioDinamico() {
       const inicio = new Date(dataInicial + 'T00:00:00');
       const fim = new Date(dataFinal + 'T00:00:00');
       const dataAtual = new Date(inicio);
+      const datas: string[] = [];
+      
+      // Coletar todas as datas
       while (dataAtual <= fim) {
-        await atualizarEscala(bombeiro.id, formatarData(dataAtual), siglaPeriodo);
+        datas.push(formatarData(dataAtual));
         dataAtual.setDate(dataAtual.getDate() + 1);
+      }
+      
+      // Processar em lotes de 10 datas por vez
+      const tamanhoBatch = 10;
+      for (let i = 0; i < datas.length; i += tamanhoBatch) {
+        const batch = datas.slice(i, i + tamanhoBatch);
+        await Promise.all(
+          batch.map(data => atualizarEscala(bombeiro.id, data, siglaPeriodo))
+        );
       }
       toast.success('Período aplicado com sucesso!');
     } catch (error) {
+      console.error('Erro ao aplicar período:', error);
       toast.error('Erro ao aplicar período');
     } finally {
       setAplicandoPeriodo(false);
