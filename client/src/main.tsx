@@ -20,12 +20,12 @@ const queryClient = new QueryClient({
 const trpcClient = trpc.createClient({
   links: [
     httpBatchLink({
-      url: "/api/trpc",
+      url: "https://gntlcxaoxtzukaizoxoi.supabase.co/functions/v1/api/trpc",
       transformer: superjson as any,
       fetch(input, init) {
         return globalThis.fetch(input, {
           ...(init ?? {}),
-          credentials: "include",
+          credentials: "omit",
         });
       },
     }),
