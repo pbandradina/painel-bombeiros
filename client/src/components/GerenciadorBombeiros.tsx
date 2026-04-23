@@ -118,7 +118,7 @@ export function GerenciadorBombeiros() {
       await apiClient.bombeiros.create({
         nome: formData.nome.trim(),
         equipe: formData.equipe,
-        data: formData.dataInicio,
+        dataInicio: formData.dataInicio,
       });
       
       toast.success(`✅ Bombeiro "${formData.nome}" adicionado!`);
