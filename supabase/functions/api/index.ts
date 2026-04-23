@@ -1,8 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { fetchRequestHandler } from "npm:@trpc/server/adapters/fetch";
-import { initTRPC } from "npm:@trpc/server";
-import { z } from "npm:zod";
-import superjson from "npm:superjson";
 import { createClient } from "npm:@supabase/supabase-js";
 
 // CORS headers
@@ -12,150 +8,120 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, GET, OPTIONS, PUT, DELETE",
 };
 
-// Initialize tRPC
-const t = initTRPC.create({
-  transformer: superjson,
-});
-
-const publicProcedure = t.procedure;
-const router = t.router;
-
 // Supabase client
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// App Router
-const appRouter = router({
-  // Test route
-  hello: publicProcedure.query(() => {
-    return { message: "Hello from Supabase Edge Functions!" };
-  }),
-
-  // Bombeiros routes
-  bombeiros: router({
-    list: publicProcedure.query(async () => {
-      const { data, error } = await supabase
-        .from("bombeiros")
-        .select("*")
-        .order("nome", { ascending: true });
-      
-      if (error) throw new Error(error.message);
-      return data;
-    }),
-    
-    create: publicProcedure
-      .input(z.object({
-        nome: z.string(),
-        equipe: z.string(),
-        data: z.string(),
-      }))
-      .mutation(async ({ input }) => {
-        const { data, error } = await supabase
-          .from("bombeiros")
-          .insert([input])
-          .select()
-          .single();
-          
-        if (error) throw new Error(error.message);
-        return data;
-      }),
-      
-    delete: publicProcedure
-      .input(z.object({ id: z.number() }))
-      .mutation(async ({ input }) => {
-        const { error } = await supabase
-          .from("bombeiros")
-          .delete()
-          .eq("id", input.id);
-          
-        if (error) throw new Error(error.message);
-        return { success: true };
-      }),
-  }),
-  
-  // Períodos routes
-  periodos: router({
-    list: publicProcedure.query(async () => {
-      const { data, error } = await supabase
-        .from("periodos")
-        .select("*");
-        
-      if (error) throw new Error(error.message);
-      return data;
-    }),
-    
-    create: publicProcedure
-      .input(z.object({
-        bombeiro_id: z.number(),
-        tipo: z.string(),
-        data_inicio: z.string(),
-        data_fim: z.string(),
-      }))
-      .mutation(async ({ input }) => {
-        const { data, error } = await supabase
-          .from("periodos")
-          .insert([input])
-          .select()
-          .single();
-          
-        if (error) throw new Error(error.message);
-        return data;
-      }),
-      
-    delete: publicProcedure
-      .input(z.object({ id: z.number() }))
-      .mutation(async ({ input }) => {
-        const { error } = await supabase
-          .from("periodos")
-          .delete()
-          .eq("id", input.id);
-          
-        if (error) throw new Error(error.message);
-        return { success: true };
-      }),
-  }),
-});
-
-export type AppRouter = typeof appRouter;
-
-// Server
+// Main server
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  const url = new URL(req.url);
+  const pathname = url.pathname;
+
   try {
-    // Handle tRPC requests
-    const url = new URL(req.url);
+    // REST API endpoints
     
-    // Check if it's a tRPC request
-    if (url.pathname.includes("/trpc")) {
-      // Adjust the endpoint path for the adapter
-      const endpoint = url.pathname.substring(0, url.pathname.indexOf("/trpc") + 5);
+    // GET /api/bombeiros - List all bombeiros
+    if (pathname === "/functions/v1/api/bombeiros" && req.method === "GET") {
+      const { data, error } = await supabase
+        .from("bombeiros")
+        .select("*")
+        .order("nome", { ascending: true });
       
-      const response = await fetchRequestHandler({
-        endpoint,
-        req,
-        router: appRouter,
-        createContext: () => ({}),
-      });
+      if (error) throw new Error(error.message);
       
-      // Add CORS headers to the response
-      const newHeaders = new Headers(response.headers);
-      for (const [key, value] of Object.entries(corsHeaders)) {
-        newHeaders.set(key, value);
-      }
-      
-      return new Response(response.body, {
-        status: response.status,
-        statusText: response.statusText,
-        headers: newHeaders,
+      return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Default response for non-tRPC requests
+    // POST /api/bombeiros - Create bombeiro
+    if (pathname === "/functions/v1/api/bombeiros" && req.method === "POST") {
+      const body = await req.json();
+      
+      const { data, error } = await supabase
+        .from("bombeiros")
+        .insert([body])
+        .select()
+        .single();
+        
+      if (error) throw new Error(error.message);
+      
+      return new Response(JSON.stringify(data), {
+        status: 201,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // DELETE /api/bombeiros/:id - Delete bombeiro
+    if (pathname.match(/^\/functions\/v1\/api\/bombeiros\/\d+$/) && req.method === "DELETE") {
+      const id = parseInt(pathname.split("/").pop() || "0");
+      
+      const { error } = await supabase
+        .from("bombeiros")
+        .delete()
+        .eq("id", id);
+        
+      if (error) throw new Error(error.message);
+      
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // GET /api/periodos - List all periodos
+    if (pathname === "/functions/v1/api/periodos" && req.method === "GET") {
+      const { data, error } = await supabase
+        .from("periodos")
+        .select("*");
+        
+      if (error) throw new Error(error.message);
+      
+      return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // POST /api/periodos - Create periodo
+    if (pathname === "/functions/v1/api/periodos" && req.method === "POST") {
+      const body = await req.json();
+      
+      const { data, error } = await supabase
+        .from("periodos")
+        .insert([body])
+        .select()
+        .single();
+        
+      if (error) throw new Error(error.message);
+      
+      return new Response(JSON.stringify(data), {
+        status: 201,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // DELETE /api/periodos/:id - Delete periodo
+    if (pathname.match(/^\/functions\/v1\/api\/periodos\/\d+$/) && req.method === "DELETE") {
+      const id = parseInt(pathname.split("/").pop() || "0");
+      
+      const { error } = await supabase
+        .from("periodos")
+        .delete()
+        .eq("id", id);
+        
+      if (error) throw new Error(error.message);
+      
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Default response
     return new Response(
       JSON.stringify({ message: "Supabase Edge Function API is running" }),
       {
@@ -164,9 +130,10 @@ serve(async (req) => {
       }
     );
   } catch (error) {
+    console.error("Error:", error);
     return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });

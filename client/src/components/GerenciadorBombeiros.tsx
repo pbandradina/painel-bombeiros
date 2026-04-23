@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, Trash2, Users, Edit2, Loader2, ChevronDown } from 'lucide-react';
-import { trpc } from '@/lib/trpc';
+import { apiClient } from '@/lib/api-client';
 import { toast } from 'sonner';
 
 // Ordem de hierarquia
@@ -43,7 +43,6 @@ const ordenarBombeiros = (bombeiros: any[]) => {
 };
 
 export function GerenciadorBombeiros() {
-  const utils = trpc.useUtils();
   const [dialogAberto, setDialogAberto] = useState(false);
   const [editandoId, setEditandoId] = useState<string | null>(null);
   const [inserirAntesId, setInserirAntesId] = useState<string | null>(null);
@@ -52,36 +51,27 @@ export function GerenciadorBombeiros() {
     equipe: 'VD' as 'VD' | 'AM' | 'AZ',
     dataInicio: new Date().toISOString().split('T')[0],
   });
+  const [bombeiros, setBombeiros] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isCreating, setIsCreating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  // Queries
-  const { data: bombeiros = [], isLoading } = trpc.bombeiros.list.useQuery();
+  // Load bombeiros on mount
+  useEffect(() => {
+    loadBombeiros();
+  }, []);
 
-  // Mutations
-  const createMutation = trpc.bombeiros.create.useMutation({
-    onSuccess: () => {
-      utils.bombeiros.list.invalidate();
-      toast.success(`✅ Bombeiro "${formData.nome}" adicionado!`);
-      setDialogAberto(false);
-      setFormData({
-        nome: '',
-        equipe: 'VD',
-        dataInicio: new Date().toISOString().split('T')[0],
-      });
-    },
-    onError: (error: any) => {
-      toast.error(`❌ Erro ao adicionar: ${error.message}`);
-    },
-  });
-
-  const deleteMutation = trpc.bombeiros.delete.useMutation({
-    onSuccess: () => {
-      utils.bombeiros.list.invalidate();
-      toast.success('✅ Bombeiro removido!');
-    },
-    onError: (error: any) => {
-      toast.error(`❌ Erro ao remover: ${error.message}`);
-    },
-  });
+  const loadBombeiros = async () => {
+    try {
+      setIsLoading(true);
+      const data = await apiClient.bombeiros.list();
+      setBombeiros(data || []);
+    } catch (error: any) {
+      toast.error(`❌ Erro ao carregar bombeiros: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const abrirDialogoAdicionar = () => {
     setEditandoId(null);
@@ -117,24 +107,50 @@ export function GerenciadorBombeiros() {
     setDialogAberto(true);
   };
 
-  const handleSalvarBombeiro = () => {
+  const handleSalvarBombeiro = async () => {
     if (!formData.nome.trim()) {
       toast.error('❌ Nome do bombeiro é obrigatório');
       return;
     }
 
-    // Adicionar novo bombeiro
-    createMutation.mutate({
-      nome: formData.nome.trim(),
-      equipe: formData.equipe,
-      dataInicio: new Date(formData.dataInicio),
-    });
+    try {
+      setIsCreating(true);
+      await apiClient.bombeiros.create({
+        nome: formData.nome.trim(),
+        equipe: formData.equipe,
+        data: formData.dataInicio,
+      });
+      
+      toast.success(`✅ Bombeiro "${formData.nome}" adicionado!`);
+      setDialogAberto(false);
+      setFormData({
+        nome: '',
+        equipe: 'VD',
+        dataInicio: new Date().toISOString().split('T')[0],
+      });
+      
+      // Reload bombeiros
+      await loadBombeiros();
+    } catch (error: any) {
+      toast.error(`❌ Erro ao adicionar: ${error.message}`);
+    } finally {
+      setIsCreating(false);
+    }
   };
 
-  const handleRemoverBombeiro = (id: string) => {
+  const handleRemoverBombeiro = async (id: string) => {
     const bombeiro = bombeiros.find((b: any) => b.id === id);
     if (window.confirm(`Tem certeza que deseja remover "${bombeiro?.nome}"?`)) {
-      deleteMutation.mutate(id);
+      try {
+        setIsDeleting(true);
+        await apiClient.bombeiros.delete(parseInt(id));
+        toast.success('✅ Bombeiro removido!');
+        await loadBombeiros();
+      } catch (error: any) {
+        toast.error(`❌ Erro ao remover: ${error.message}`);
+      } finally {
+        setIsDeleting(false);
+      }
     }
   };
 
@@ -213,10 +229,10 @@ export function GerenciadorBombeiros() {
                 </div>
                 <Button
                   onClick={handleSalvarBombeiro}
-                  disabled={createMutation.isPending}
+                  disabled={isCreating}
                   className="w-full"
                 >
-                  {createMutation.isPending ? (
+                  {isCreating ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                       Salvando...
@@ -272,7 +288,7 @@ export function GerenciadorBombeiros() {
                     variant="destructive"
                     size="sm"
                     onClick={() => handleRemoverBombeiro(bombeiro.id)}
-                    disabled={deleteMutation.isPending}
+                    disabled={isDeleting}
                     className="gap-1 flex-1 text-xs h-7"
                   >
                     <Trash2 className="w-3 h-3" />
