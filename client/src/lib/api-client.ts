@@ -55,12 +55,12 @@ export const apiClient = {
   // Bombeiros endpoints
   bombeiros: {
     list: async () => apiClient.get("/bombeiros"),
-    create: async (data: { nome: string; equipe: string; dataInicio: string }) => {
-      // Convert dataInicio to ISO format for Supabase
+    create: async (data: any) => {
+      // Accept either data_inicio (already formatted) or dataInicio (needs formatting)
       const payload = {
         nome: data.nome,
         equipe: data.equipe,
-        data_inicio: new Date(data.dataInicio).toISOString(),
+        data_inicio: data.data_inicio || new Date(data.dataInicio).toISOString(),
       };
       return apiClient.post("/bombeiros", payload);
     },
