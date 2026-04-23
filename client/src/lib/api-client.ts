@@ -1,5 +1,6 @@
 // Simple HTTP client for Supabase Edge Function API
 const API_BASE_URL = "https://gntlcxaoxtzukaizoxoi.supabase.co/functions/v1/api";
+const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdudGxjeGFveHR6dWthaXpveG9pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4NzcyODYsImV4cCI6MjA5MDQ1MzI4Nn0.gYHD-Nj-ev4fHOBv43ts9wXg2lgStksQnUV02w0hNms";
 
 export const apiClient = {
   async get(endpoint: string) {
@@ -7,6 +8,7 @@ export const apiClient = {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
+        "Authorization": `Bearer ${ANON_KEY}`,
       },
     });
     
@@ -22,6 +24,7 @@ export const apiClient = {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Authorization": `Bearer ${ANON_KEY}`,
       },
       body: JSON.stringify(data),
     });
@@ -38,6 +41,7 @@ export const apiClient = {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
+        "Authorization": `Bearer ${ANON_KEY}`,
       },
     });
     
