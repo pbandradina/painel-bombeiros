@@ -22,12 +22,13 @@ serve(async (req) => {
 
   const url = new URL(req.url);
   const pathname = url.pathname;
+  console.log(`[DEBUG] Method: ${req.method}, Pathname: ${pathname}`);
 
   try {
     // REST API endpoints
     
     // GET /api/bombeiros - List all bombeiros
-    if (pathname === "/functions/v1/api/bombeiros" && req.method === "GET") {
+    if (pathname === "/api/bombeiros" && req.method === "GET") {
       const { data, error } = await supabase
         .from("bombeiros")
         .select("*")
@@ -41,7 +42,7 @@ serve(async (req) => {
     }
 
     // POST /api/bombeiros - Create bombeiro
-    if (pathname === "/functions/v1/api/bombeiros" && req.method === "POST") {
+    if (pathname === "/api/bombeiros" && req.method === "POST") {
       const body = await req.json();
       
       const { data, error } = await supabase
@@ -59,7 +60,7 @@ serve(async (req) => {
     }
 
     // DELETE /api/bombeiros/:id - Delete bombeiro
-    if (pathname.match(/^\/functions\/v1\/api\/bombeiros\/\d+$/) && req.method === "DELETE") {
+    if (pathname.match(/^\/api\/bombeiros\/\d+$/) && req.method === "DELETE") {
       const id = parseInt(pathname.split("/").pop() || "0");
       
       const { error } = await supabase
@@ -75,7 +76,7 @@ serve(async (req) => {
     }
 
     // GET /api/periodos - List all periodos
-    if (pathname === "/functions/v1/api/periodos" && req.method === "GET") {
+    if (pathname === "/api/periodos" && req.method === "GET") {
       const { data, error } = await supabase
         .from("periodos")
         .select("*");
@@ -88,7 +89,7 @@ serve(async (req) => {
     }
 
     // POST /api/periodos - Create periodo
-    if (pathname === "/functions/v1/api/periodos" && req.method === "POST") {
+    if (pathname === "/api/periodos" && req.method === "POST") {
       const body = await req.json();
       
       const { data, error } = await supabase
@@ -106,7 +107,7 @@ serve(async (req) => {
     }
 
     // DELETE /api/periodos/:id - Delete periodo
-    if (pathname.match(/^\/functions\/v1\/api\/periodos\/\d+$/) && req.method === "DELETE") {
+    if (pathname.match(/^\/api\/periodos\/\d+$/) && req.method === "DELETE") {
       const id = parseInt(pathname.split("/").pop() || "0");
       
       const { error } = await supabase
